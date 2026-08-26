@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dalila's GF Daily Tracker</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-light: #666666;
+            --border: #e0e0e0;
+            
+            /* Category Colors */
+            --color-protein: #FF5252;
+            --color-bread: #FFB300;
+            --color-fruit: #7B1FA2;
+            --color-fat: #FBC02D;
+            --color-dairy: #1976D2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 80px; /* Space for reset button */
+        }
+
+        /* Header & Search */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 101;
+        }
+
+        .search-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-item .food-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .search-item .food-cost {
+            font-size: 14px;
+            color: var(--primary-dark);
+            margin-top: 4px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        /* Main Content */
+        .content-section {
+            display: none;
+            padding: 20px;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Tracker Boxes */
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .boxes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .box-wrapper {
+            position: relative;
+        }
+
+        .box-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .box-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+
+        /* Checkbox color logic based on category */
+        .cat-protein .box-label.checked { background-color: var(--color-protein); border-color: var(--color-protein); }
+        .cat-bread .box-label.checked { background-color: var(--color-bread); border-color: var(--color-bread); }
+        .cat-fruit .box-label.checked { background-color: var(--color-fruit); border-color: var(--color-fruit); }
+        .cat-fat .box-label.checked { background-color: var(--color-fat); border-color: var(--color-fat); }
+        .cat-dairy .box-label.checked { background-color: var(--color-dairy); border-color: var(--color-dairy); }
+
+        .box-label.checked::after {
+            content: "✓";
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Free Foods Note */
+        .free-foods-note {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--primary-dark);
+            line-height: 1.5;
+        }
+
+        /* Recipes Section */
+        .recipe-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
+        }
+
+        .recipe-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+
+        .recipe-ingredients {
+            font-size: 15px;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .recipe-cost {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        /* Floating Reset Button */
+        .reset-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 90;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dalila's GF Tracker</h1>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search food (e.g. pumpkin)...">
+            <div id="search-results"></div>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tracker')">Daily Boxes</button>
+        <button class="tab-btn" onclick="switchTab('recipes')">Meal Ideas</button>
+    </div>
+
+    <!-- TAB 1: TRACKER -->
+    <main id="tracker" class="content-section active">
+        <!-- Rendered by JS -->
+        <div id="tracker-container"></div>
+        
+        <div class="free-foods-note">
+            <strong>Unlimited Free Foods (Cost = 0 Boxes):</strong><br>
+            Pumpkin, zucchini, spinach, mushrooms, tomatoes, clear GF broth, frozen veg packs (no corn/peas), GF Vegemite, mustard, vinegar, diet drinks. Eat as much as you like!
+        </div>
+    </main>
+
+    <!-- TAB 2: RECIPES -->
+    <main id="recipes" class="content-section">
+        
+        <div class="recipe-card">
+            <div class="recipe-title">🍳 Dalila's Giant GF Omelette</div>
+            <div class="recipe-ingredients">1 Whole Egg, 2 Egg Whites, Spinach, Mushrooms, Zucchini.</div>
+            <div class="recipe-cost">Cost: 2 Proteins, 0 Free</div>
+        </div>
+
+        <div class="recipe-card">
+            <div class="recipe-title">🍲 Aussie Chicken & Pumpkin Soup</div>
+            <div class="recipe-ingredients">GF Chicken broth, roasted pumpkin, zucchini, 60g shredded chicken breast.</div>
+            <div class="recipe-cost">Cost: 2 Proteins, 0 Free</div>
+        </div>
+
+        <div class="recipe-card">
+            <div class="recipe-title">🥩 Meat & Veg Dinner</div>
+            <div class="recipe-ingredients">90g grilled barramundi, 1/2 cup cooked basmati rice, massive side of roasted pumpkin and broccoli cooked in 2 tsp olive oil.</div>
+            <div class="recipe-cost">Cost: 3 Proteins, 1 Bread, 2 Fats</div>
+        </div>
+
+        <div class="recipe-card">
+            <div class="recipe-title">🍓 Quick Afternoon Tea</div>
+            <div class="recipe-ingredients">1 cup low-fat plain yoghurt, 1 cup berries.</div>
+            <div class="recipe-cost">Cost: 1 Dairy, 1 Fruit</div>
+        </div>
+
+        <div class="recipe-card">
+            <div class="recipe-title">🥣 GF Weet-Bix Start</div>
+            <div class="recipe-ingredients">2 GF Weet-Bix biscuits, 250ml skim milk or GF unsweetened almond milk.</div>
+            <div class="recipe-cost">Cost: 1 Bread, 1 Dairy</div>
+        </div>
+
+        <div class="recipe-card">
+            <div class="recipe-title">🐟 Tuna & Rice Cracker Snack</div>
+            <div class="recipe-ingredients">30g Tuna in springwater, 10 small rice crackers.</div>
+            <div class="recipe-cost">Cost: 1 Protein, 1 Bread</div>
+        </div>
+
+    </main>
+
+    <button class="reset-btn" onclick="startNewDay()">Start New Day</button>
+
+    <script>
+        // STRICTLY GLUTEN-FREE & AUSTRALIAN DATABASE
+        const foodDB = [
+            // FREE
+            { name: "Pumpkin", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Zucchini", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Clear GF Broth", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Spinach", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Mushrooms", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Tomatoes", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Frozen Veg Packs (No Corn/Peas)", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "GF Vegemite", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Mustard / Vinegar", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+            { name: "Diet Drinks / Water", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+
+            // BREADS/STARCHES (Cost = 1)
+            { name: "GF Weet-Bix", portion: "2 biscuits", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "GF Bread", portion: "1 slice", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "Potato / Sweet Potato", portion: "1 small", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "Basmati / Jasmine Rice", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "GF Pasta / Rice Noodles", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "Rice Crackers", portion: "10 small", category: "Breads/Starches", cost: "1 Bread Box" },
+            { name: "Quinoa", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
+
+            // PROTEINS (Cost = 1)
+            { name: "Whole Egg", portion: "1 egg", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Egg Whites", portion: "2 whites", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Chicken Breast", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Lean Beef / Kangaroo", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Barramundi / Salmon", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Tuna in Springwater", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Cottage Cheese", portion: "1/4 cup", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Firm Tofu", portion: "50g", category: "Proteins", cost: "1 Protein Box" },
+            { name: "Hard Cheese (e.g. Tasty/Cheddar)", portion: "30g", category: "Proteins & Fats", cost: "1 Protein Box + 1 Fat Box" },
+
+            // FRUITS (Cost = 1)
+            { name: "Apple / Orange / Peach / Pear", portion: "1 medium", category: "Fruits", cost: "1 Fruit Box" },
+            { name: "Banana", portion: "1/2 medium", category: "Fruits", cost: "1 Fruit Box" },
+            { name: "Mango", portion: "1/2 small", category: "Fruits", cost: "1 Fruit Box" },
+            { name: "Berries", portion: "1 cup", category: "Fruits", cost: "1 Fruit Box" },
+            { name: "Kiwi", portion: "1 large", category: "Fruits", cost: "1 Fruit Box" },
+
+            // DAIRY (Cost = 1)
+            { name: "Skim Milk", portion: "250ml", category: "Dairy", cost: "1 Dairy Box" },
+            { name: "GF Unsweetened Almond Milk", portion: "250ml", category: "Dairy", cost: "1 Dairy Box" },
+            { name: "Low-fat Plain Yoghurt", portion: "1 cup", category: "Dairy", cost: "1 Dairy Box" },
+
+            // FATS (Cost = 1)
+            { name: "Olive Oil / Butter", portion: "1 tsp", category: "Fats", cost: "1 Fat Box" },
+            { name: "Avocado", portion: "1/8th of avocado", category: "Fats", cost: "1 Fat Box" },
+            { name: "Macadamias / Almonds", portion: "6 nuts", category: "Fats", cost: "1 Fat Box" }
+        ];
+
+        // Tracker Configuration
+        const categories = [
+            { id: 'protein', name: '🥩 Proteins', count: 6, cssClass: 'cat-protein' },
+            { id: 'bread', name: '🍞 Breads & Starches', count: 3, cssClass: 'cat-bread' },
+            { id: 'fruit', name: '🍎 Fruits', count: 3, cssClass: 'cat-fruit' },
+            { id: 'fat', name: '🥑 Fats', count: 3, cssClass: 'cat-fat' },
+            { id: 'dairy', name: '🥛 Dairy', count: 2, cssClass: 'cat-dairy' }
+        ];
+
+        // Initialize App
+        function initApp() {
+            renderTracker();
+            loadProgress();
+            setupSearch();
+        }
+
+        // Render Checkboxes
+        function renderTracker() {
+            const container = document.getElementById('tracker-container');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                let html = `
+                <div class="category-card ${cat.cssClass}">
+                    <div class="category-header">
+                        <div class="category-title">${cat.name} (${cat.count})</div>
+                    </div>
+                    <div class="boxes-container">
+                `;
+
+                for (let i = 1; i <= cat.count; i++) {
+                    const boxId = `${cat.id}-${i}`;
+                    html += `
+                    <div class="box-wrapper">
+                        <input type="checkbox" id="${boxId}" onchange="saveProgress()">
+                        <label for="${boxId}" class="box-label" id="label-${boxId}"></label>
+                    </div>
+                    `;
+                }
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        // Save progress to LocalStorage
+        function saveProgress() {
+            const data = {};
+            categories.forEach(cat => {
+                for (let i = 1; i <= cat.count; i++) {
+                    const boxId = `${cat.id}-${i}`;
+                    const isChecked = document.getElementById(boxId).checked;
+                    data[boxId] = isChecked;
+                    
+                    // Update visual label
+                    const label = document.getElementById(`label-${boxId}`);
+                    if (isChecked) {
+                        label.classList.add('checked');
+                    } else {
+                        label.classList.remove('checked');
+                    }
+                }
+            });
+            localStorage.setItem('dalilaFoodTracker', JSON.stringify(data));
+        }
+
+        // Load progress on startup
+        function loadProgress() {
+            const savedData = localStorage.getItem('dalilaFoodTracker');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                for (const [boxId, isChecked] of Object.entries(data)) {
+                    const el = document.getElementById(boxId);
+                    if (el) {
+                        el.checked = isChecked;
+                        if (isChecked) {
+                            document.getElementById(`label-${boxId}`).classList.add('checked');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Start New Day (Reset)
+        function startNewDay() {
+            if (confirm("Are you sure you want to start a new day? This clears all your boxes.")) {
+                categories.forEach(cat => {
+                    for (let i = 1; i <= cat.count; i++) {
+                        const boxId = `${cat.id}-${i}`;
+                        document.getElementById(boxId).checked = false;
+                        document.getElementById(`label-${boxId}`).classList.remove('checked');
+                    }
+                });
+                saveProgress();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // Hide Reset button on recipes page for a cleaner look
+            const resetBtn = document.querySelector('.reset-btn');
+            if(tabId === 'recipes') {
+                resetBtn.style.display = 'none';
+            } else {
+                resetBtn.style.display = 'block';
+            }
+        }
+
+        // Search Functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                const matches = foodDB.filter(food => 
+                    food.name.toLowerCase().includes(query) || 
+                    food.category.toLowerCase().includes(query)
+                );
+
+                if (matches.length > 0) {
+                    let html = '';
+                    matches.forEach(food => {
+                        html += `
+                        <div class="search-item">
+                            <div class="food-name">${food.name} (${food.portion})</div>
+                            <div class="food-cost">Costs: ${food.cost}</div>
+                        </div>
+                        `;
+                    });
+                    searchResults.innerHTML = html;
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.innerHTML = '<div class="search-item">No matches found. Try a different word.</div>';
+                    searchResults.style.display = 'block';
+                }
+            });
+
+            // Close search when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        }
+
+        // Run on load
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
