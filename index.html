@@ -1,699 +1,571 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-AU">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dalila's GF Daily Tracker</title>
-    <style>
-        :root {
-            --primary: #4CAF50;
-            --primary-dark: #388E3C;
-            --bg: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-light: #666666;
-            --border: #e0e0e0;
-            
-            /* Category Colors */
-            --color-protein: #FF5252;
-            --color-bread: #FFB300;
-            --color-fruit: #7B1FA2;
-            --color-fat: #FBC02D;
-            --color-dairy: #1976D2;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            padding-bottom: 80px; 
-        }
-
-        /* Header & Search */
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        header h1 {
-            font-size: 20px;
-        }
-
-        .week-selector {
-            background: white;
-            color: var(--primary-dark);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        #search-input {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            border: none;
-            border-radius: 25px;
-            outline: none;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        #search-results {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            margin-top: 8px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 101;
-        }
-
-        .search-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-main);
-        }
-        .search-item:last-child { border-bottom: none; }
-        .search-item .food-name { font-weight: bold; font-size: 16px; }
-        .search-item .food-cost { font-size: 14px; color: var(--primary-dark); margin-top: 4px; }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: none; 
-            -ms-overflow-style: none; 
-        }
-        .tabs::-webkit-scrollbar { display: none; }
-
-        .tab-btn {
-            flex: 0 0 auto;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 15px;
-            font-weight: bold;
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-        }
-
-        /* Main Content */
-        .content-section {
-            display: none;
-            padding: 20px;
-        }
-        .content-section.active { display: block; }
-
-        /* Tracker Boxes */
-        .category-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .category-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .category-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .boxes-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .box-wrapper { position: relative; }
-        .box-wrapper input[type="checkbox"] { display: none; }
-        
-        .box-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border: 2px solid #ccc;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 24px;
-            transition: all 0.2s ease;
-            background-color: white;
-        }
-
-        .cat-protein .box-label.checked { background-color: var(--color-protein); border-color: var(--color-protein); }
-        .cat-bread .box-label.checked { background-color: var(--color-bread); border-color: var(--color-bread); }
-        .cat-fruit .box-label.checked { background-color: var(--color-fruit); border-color: var(--color-fruit); }
-        .cat-fat .box-label.checked { background-color: var(--color-fat); border-color: var(--color-fat); }
-        .cat-dairy .box-label.checked { background-color: var(--color-dairy); border-color: var(--color-dairy); }
-
-        .box-label.checked::after {
-            content: "✓";
-            color: white;
-            font-weight: bold;
-        }
-
-        .free-foods-note {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 14px;
-            color: var(--primary-dark);
-            line-height: 1.5;
-        }
-
-        /* Guide & Library Cards */
-        .info-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            line-height: 1.6;
-        }
-        .info-card h2 { font-size: 20px; color: var(--primary-dark); margin-bottom: 10px; }
-        .info-card p { margin-bottom: 10px; font-size: 15px; }
-        .info-card ul { margin-left: 20px; margin-bottom: 10px; font-size: 15px; }
-        .info-card li { margin-bottom: 6px; }
-
-        /* Recipes Section */
-        .recipe-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--primary);
-        }
-        .recipe-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
-        }
-        .recipe-ingredients {
-            font-size: 15px;
-            color: var(--text-main);
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-        .recipe-cost {
-            display: inline-block;
-            background: #f0f0f0;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--text-light);
-        }
-
-        /* Floating Reset Button */
-        .reset-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--text-main);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            cursor: pointer;
-            z-index: 90;
-        }
-
-        /* Library List styling */
-        .library-category { margin-top: 25px; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: var(--primary-dark); }
-        .library-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 15px;
-        }
-        .library-item span:last-child { color: var(--text-light); font-weight: bold; font-size: 14px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>GF Exchange Tracker</title>
+<style>
+:root{
+  --bg:#f4f6f7;--surface:#ffffff;--surface-2:#eef2f3;--text:#142127;--muted:#56666d;
+  --border:#cbd5d9;--accent:#0b6b57;--accent-2:#084f41;--accent-soft:#dff3ed;
+  --warn:#8a4b00;--warn-bg:#fff0d9;--danger:#9f1d20;--danger-bg:#fde7e8;--ok:#176b3a;
+  --shadow:0 8px 24px rgba(10,35,43,.10);--radius:16px;--tap:48px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0f171a;--surface:#162126;--surface-2:#1d2b31;--text:#f2f6f7;--muted:#b9c6cb;--border:#34474f;--accent:#57d1ad;--accent-2:#9be4cf;--accent-soft:#173a31;--warn:#ffd28a;--warn-bg:#44331a;--danger:#ff9da0;--danger-bg:#492427;--ok:#84dfab;--shadow:none}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input{font:inherit}
+button{touch-action:manipulation}
+.app{max-width:760px;margin:0 auto;min-height:100dvh;padding-bottom:94px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:1.18rem;margin:0;font-weight:800;letter-spacing:.01em}
+.subtitle{font-size:.82rem;color:var(--muted);margin-top:2px}
+.status-dot{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--muted);white-space:nowrap}
+.status-dot::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 15%,transparent)}
+main{padding:14px 14px 24px}
+.view{display:none}.view.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px;margin-bottom:12px}
+.safety{border-left:5px solid var(--accent);background:var(--accent-soft)}
+.safety strong{display:block;margin-bottom:5px}
+.safety p{margin:4px 0;font-size:.9rem}
+.banline{margin-top:9px;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));font-size:.84rem;font-weight:700}
+.day-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.day-title{font-weight:800;font-size:1.08rem}.day-meta{font-size:.84rem;color:var(--muted);margin-top:2px}
+.primary,.secondary,.danger-btn,.adjust,.small-btn,.meal-add,.food-add{min-height:var(--tap);border-radius:12px;border:1px solid transparent;padding:10px 14px;font-weight:750;cursor:pointer}
+.primary{background:var(--accent);color:white}.primary:hover{background:var(--accent-2)}
+.secondary{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+.danger-btn{background:var(--danger-bg);color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--border))}
+.full{width:100%}
+.allowance-note{font-size:.82rem;color:var(--muted);margin:9px 0 0}
+.exchange-grid{display:grid;gap:12px}
+.exchange-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.exchange-card.over{border-color:var(--danger)}
+.exchange-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.exchange-title{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.exchange-title h2{font-size:1rem;margin:0}.exchange-title span{font-size:.8rem;color:var(--muted)}
+.count{font-weight:850;font-variant-numeric:tabular-nums}.count.over{color:var(--danger)}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:8px;margin-top:12px}
+.box-wrap{position:relative;min-width:44px}
+.box-wrap input{position:absolute;opacity:0;pointer-events:none}
+.box{height:48px;border:2px solid var(--border);border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:850;background:var(--surface-2);cursor:pointer;user-select:none}
+.box-wrap input:checked + .box{background:var(--accent);border-color:var(--accent);color:#fff}
+.box-wrap.half .box{background:linear-gradient(90deg,var(--accent) 50%,var(--surface-2) 50%);border-color:var(--accent);color:transparent;position:relative}
+.box-wrap.half .box::after{content:"½";color:var(--text);background:color-mix(in srgb,var(--surface) 88%,transparent);border-radius:8px;padding:1px 5px;font-weight:900}
+.box-wrap input:focus-visible + .box{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.adjust-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.adjust{background:var(--surface-2);border-color:var(--border);color:var(--text)}
+.free-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:12px}
+.free-card h2{font-size:1rem;margin:0 0 5px}.free-card p{margin:0;color:var(--muted);font-size:.88rem}
+.search-wrap{position:sticky;top:75px;z-index:12;background:var(--bg);padding:0 0 10px}
+.search{width:100%;min-height:52px;border:1.5px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);padding:0 15px;font-size:1rem;outline:none}
+.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.filter-row{display:flex;gap:8px;overflow:auto;padding:8px 0 2px;scrollbar-width:none}.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{min-height:44px;white-space:nowrap;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:8px 13px;font-weight:700}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.result-summary{font-size:.82rem;color:var(--muted);margin:2px 2px 10px}
+.food-list,.meal-list{display:grid;gap:10px}
+.food-card,.meal-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+.food-head,.meal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.food-name,.meal-name{font-weight:850;line-height:1.25}
+.pill{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;padding:4px 9px;background:var(--surface-2);border:1px solid var(--border);font-size:.74rem;font-weight:800;white-space:nowrap}
+.pill.free{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,var(--border))}
+.serving{margin-top:7px;color:var(--muted);font-size:.88rem}
+.exchanges{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.exchange-tag{font-size:.78rem;font-weight:800;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:5px 8px}
+.food-note,.meal-desc{font-size:.84rem;color:var(--muted);margin:8px 0 0}
+.food-add,.meal-add{width:100%;margin-top:10px;background:var(--accent);color:white;min-height:44px}
+.category-heading{margin:18px 2px 8px;font-size:.92rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.meal-meta{font-size:.79rem;color:var(--muted);margin-top:4px}
+.ingredients{margin:9px 0 0;padding-left:19px;font-size:.88rem}.ingredients li{margin:3px 0}
+.feedback{position:fixed;left:50%;bottom:92px;transform:translate(-50%,12px);z-index:50;background:#142127;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);font-size:.86rem;font-weight:700;opacity:0;pointer-events:none;transition:.18s ease;max-width:min(90vw,520px);text-align:center}
+.feedback.show{opacity:1;transform:translate(-50%,0)}
+.bottom-nav{position:fixed;z-index:30;left:50%;bottom:0;transform:translateX(-50%);width:min(760px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--border)}
+.nav-btn{min-height:58px;border:0;border-radius:12px;background:transparent;color:var(--muted);font-weight:750;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}.nav-btn .nav-symbol{font-size:1.2rem;line-height:1}.nav-btn.active{background:var(--accent-soft);color:var(--accent-2)}
+.empty{padding:24px 12px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:14px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:80;display:none;align-items:flex-end;justify-content:center}.modal-backdrop.open{display:flex}
+.modal{background:var(--surface);color:var(--text);width:min(760px,100%);border-radius:20px 20px 0 0;border:1px solid var(--border);padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+.modal h2{font-size:1.08rem;margin:0 0 7px}.modal p{font-size:.9rem;color:var(--muted);margin:0 0 14px}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media (min-width:620px){main{padding:18px}.exchange-grid{grid-template-columns:1fr 1fr}.search-wrap{top:77px}.modal-backdrop{align-items:center}.modal{border-radius:20px;max-width:520px}.meal-list{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
 </head>
 <body>
-
-    <header>
-        <div class="header-top">
-            <h1>Dalila's GF Tracker</h1>
-            <select id="week-selector" class="week-selector" onchange="changeWeek()">
-                <!-- Populated by JS -->
-            </select>
-        </div>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search a food (e.g. rice)...">
-            <div id="search-results"></div>
-        </div>
-    </header>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tracker')">Daily Boxes</button>
-        <button class="tab-btn" onclick="switchTab('guide')">How it Works</button>
-        <button class="tab-btn" onclick="switchTab('recipes')">Meal Ideas</button>
-        <button class="tab-btn" onclick="switchTab('library')">Food Library</button>
+<div class="app">
+<header>
+  <div class="header-row">
+    <div>
+      <h1>GF Exchange Tracker</h1>
+      <div class="subtitle">Daily exchange boxes, not calorie counting</div>
+    </div>
+    <div class="status-dot">Saved on device</div>
+  </div>
+</header>
+<main>
+  <section id="trackerView" class="view active" aria-labelledby="trackerTab">
+    <div class="card safety">
+      <strong>Coeliac-safe rule</strong>
+      <p>Use only foods that are naturally gluten-free or clearly labelled gluten-free. For packaged foods, sauces, stocks and processed products, verify the current label and avoid cross-contact.</p>
+      <div class="banline">Do not use: standard wheat bread, standard pasta, barley, rye, standard soy sauce, or regular oats. Use verified GF alternatives such as GF bread, GF pasta, rice noodles, certified GF stock and tamari.</div>
     </div>
 
-    <!-- TAB 1: TRACKER -->
-    <main id="tracker" class="content-section active">
-        <div id="tracker-container"></div>
-        
-        <div class="free-foods-note">
-            <strong>Unlimited Free Foods (Cost = 0 Boxes):</strong><br>
-            Capsicum, cucumber, celery, lettuce, carrots, pumpkin, zucchini, spinach, mushrooms, tomatoes, clear GF broth, frozen veg packs (no corn/peas), GF Vegemite, mustard, vinegar, diet drinks, black tea/coffee. Eat as much as you like!
+    <div class="card">
+      <div class="day-head">
+        <div>
+          <div class="day-title">Today's exchange boxes</div>
+          <div id="dayMeta" class="day-meta"></div>
         </div>
-    </main>
+        <button id="newDayBtn" class="danger-btn" type="button">Start New Day</button>
+      </div>
+      <p class="allowance-note">Default allowance: 6 Protein, 3 Bread/Starch, 3 Fruit, 3 Fat, 2 Dairy. Tap boxes or use ±½ controls.</p>
+    </div>
 
-    <!-- TAB 2: GUIDE -->
-    <main id="guide" class="content-section">
-        <div class="info-card">
-            <h2>Welcome to your Tracker!</h2>
-            <p>This app makes eating well very easy. You do not need to count calories. Instead, you spend "Boxes".</p>
-            <p>Think of a Box like a token. Your daily budget gives you tokens for <strong>Proteins, Breads/Starches, Fruits, Fats, and Dairy.</strong></p>
-            <ul>
-                <li>When you eat a food, you check off a box.</li>
-                <li>When you run out of boxes for a category, you stop eating that type of food for the day.</li>
-                <li><strong>Free Foods</strong> cost nothing. You can eat them any time you feel hungry!</li>
-            </ul>
-        </div>
-        
-        <div class="info-card">
-            <h2>How the Weeks Work</h2>
-            <p>Your daily budget changes gently over time to help you progress.</p>
-            <ul>
-                <li><strong>Weeks 1 & 2:</strong> A starting point with more energy.</li>
-                <li><strong>Weeks 3 & 4:</strong> Breads and starches step down slightly.</li>
-                <li><strong>Weeks 5+:</strong> Fruits and fats adjust to a solid, steady routine.</li>
-            </ul>
-            <p>Use the dropdown at the top to change your week. <em>Note: Changing your week will reset today's boxes!</em></p>
-        </div>
+    <div id="exchangeGrid" class="exchange-grid"></div>
 
-        <div class="info-card">
-            <h2>100% Gluten-Free</h2>
-            <p>This whole app is built for Coeliacs. There is no wheat, no regular pasta, no soy sauce, and <strong>no oats</strong> (as oats are not Coeliac-safe in Australia). Every meal idea and food cost is totally safe for you.</p>
-        </div>
-    </main>
+    <div class="free-card">
+      <h2>Free foods</h2>
+      <p>Non-starchy vegetables and zero-exchange flavourings do not use exchange boxes. Potatoes, sweet potatoes, corn and peas are starches, not free vegetables.</p>
+    </div>
+  </section>
 
-    <!-- TAB 3: RECIPES -->
-    <main id="recipes" class="content-section">
-        <div id="recipes-container"></div>
-    </main>
+  <section id="lookupView" class="view" aria-labelledby="lookupTab">
+    <div class="search-wrap">
+      <label class="visually-hidden" for="foodSearch">Search foods</label>
+      <input id="foodSearch" class="search" type="search" inputmode="search" autocomplete="off" placeholder="Search foods, e.g. barramundi, rice, pumpkin…">
+      <div id="filterRow" class="filter-row" aria-label="Food category filters"></div>
+    </div>
+    <div id="resultSummary" class="result-summary"></div>
+    <div id="foodList" class="food-list"></div>
+  </section>
 
-    <!-- TAB 4: FOOD LIBRARY -->
-    <main id="library" class="content-section">
-        <div class="info-card">
-            <p>Here is your complete guide to portions. Search at the top of the app, or scroll through this list to see what counts as "1 Box".</p>
-        </div>
-        <div id="library-container"></div>
-    </main>
+  <section id="mealsView" class="view" aria-labelledby="mealsTab">
+    <div class="card">
+      <div class="day-title">GF meal & recipe ideas</div>
+      <p class="allowance-note">All templates are designed around the supplied exchange rules. Packaged ingredients must still be verified gluten-free at purchase.</p>
+    </div>
+    <div id="mealList" class="meal-list"></div>
+  </section>
+</main>
+</div>
 
-    <button class="reset-btn" id="reset-btn" onclick="startNewDay()">Start New Day</button>
+<nav class="bottom-nav" aria-label="Primary navigation">
+  <button id="trackerTab" class="nav-btn active" type="button" data-view="trackerView" aria-selected="true"><span class="nav-symbol">☑</span><span>Tracker</span></button>
+  <button id="lookupTab" class="nav-btn" type="button" data-view="lookupView" aria-selected="false"><span class="nav-symbol">⌕</span><span>Food Lookup</span></button>
+  <button id="mealsTab" class="nav-btn" type="button" data-view="mealsView" aria-selected="false"><span class="nav-symbol">≡</span><span>Meal Ideas</span></button>
+</nav>
 
-    <script>
-        // BUDGET SCHEDULE (Weeks 1 to 12)
-        const weeklyBudgets = {
-            1: { protein: 6, bread: 4, fruit: 3, fat: 3, dairy: 2 },
-            2: { protein: 6, bread: 4, fruit: 3, fat: 3, dairy: 2 },
-            3: { protein: 6, bread: 3, fruit: 3, fat: 3, dairy: 2 },
-            4: { protein: 6, bread: 3, fruit: 3, fat: 3, dairy: 2 },
-            5: { protein: 6, bread: 3, fruit: 2, fat: 3, dairy: 2 },
-            6: { protein: 6, bread: 3, fruit: 2, fat: 3, dairy: 2 },
-            7: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 },
-            8: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 },
-            9: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 },
-            10: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 },
-            11: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 },
-            12: { protein: 6, bread: 3, fruit: 2, fat: 2, dairy: 2 }
-        };
+<div id="feedback" class="feedback" role="status" aria-live="polite"></div>
 
-        let currentWeek = 1;
+<div id="resetModal" class="modal-backdrop" role="presentation">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetTitle" aria-describedby="resetDesc">
+    <h2 id="resetTitle">Start a new day?</h2>
+    <p id="resetDesc">This clears today's exchange boxes on this device. Your food database and meal library are unchanged.</p>
+    <div class="modal-actions">
+      <button id="cancelReset" class="secondary" type="button">Cancel</button>
+      <button id="confirmReset" class="danger-btn" type="button">Clear today</button>
+    </div>
+  </div>
+</div>
 
-        const categoryMeta = [
-            { id: 'protein', name: '🥩 Proteins', cssClass: 'cat-protein' },
-            { id: 'bread', name: '🍞 Breads & Starches', cssClass: 'cat-bread' },
-            { id: 'fruit', name: '🍎 Fruits', cssClass: 'cat-fruit' },
-            { id: 'fat', name: '🥑 Fats', cssClass: 'cat-fat' },
-            { id: 'dairy', name: '🥛 Dairy', cssClass: 'cat-dairy' }
-        ];
+<script>
+(() => {
+  'use strict';
 
-        // MASSIVE GF FOOD DATABASE
-        const foodDB = [
-            // FREE
-            { name: "Capsicum, Cucumber, Celery", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Lettuce, Carrots, Spinach", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Pumpkin, Zucchini", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Mushrooms, Tomatoes", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Clear GF Broth", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Frozen Veg Packs (No Corn/Peas)", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "GF Vegemite", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Mustard / Vinegar", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
-            { name: "Diet Drinks / Black Tea / Black Coffee", portion: "Unlimited", category: "Free", cost: "0 Boxes" },
+  const STORAGE_KEY = 'gfExchangeTracker.v1';
+  const allowance = { protein: 6, starch: 3, fruit: 3, fat: 3, dairy: 2 };
+  const categoryLabels = { protein: 'Protein', starch: 'Bread / Starch', fruit: 'Fruit', fat: 'Fat', dairy: 'Dairy', free: 'Free' };
+  const categoryCalibration = {
+    protein: '~7 g protein / 50–55 kcal per exchange',
+    starch: '~15 g carbohydrate / 80 kcal per exchange',
+    fruit: '~15 g carbohydrate / 60 kcal per exchange',
+    fat: '~5 g fat / 45 kcal per exchange',
+    dairy: '~12 g carbohydrate + 8 g protein / 90 kcal per exchange'
+  };
 
-            // BREADS/STARCHES
-            { name: "GF Weet-Bix", portion: "2 biscuits", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "GF Bread", portion: "1 slice", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Corn Thins / Rice Cakes", portion: "2 slices", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "GF Wraps", portion: "1 small", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Potato / Sweet Potato", portion: "1 small", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Basmati / Jasmine Rice", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "GF Pasta / Rice Noodles", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Rice Crackers", portion: "10 small", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Quinoa", portion: "1/2 cup cooked", category: "Breads/Starches", cost: "1 Bread Box" },
-            { name: "Corn kernels", portion: "1/2 cup", category: "Breads/Starches", cost: "1 Bread Box" },
+  const foods = [
+    {name:'Pumpkin',category:'free',serving:'Any amount',exchanges:{},note:'Non-starchy vegetable in this exchange system. Naturally GF.'},
+    {name:'Zucchini',category:'free',serving:'Any amount',exchanges:{},note:'Non-starchy vegetable. Naturally GF.'},
+    {name:'Clear Certified GF Broth / Stock',category:'free',serving:'1 cup or as needed',exchanges:{},note:'Use only stock clearly labelled gluten-free.'},
+    {name:'Frozen Mixed Vegetables, no corn or peas',category:'free',serving:'Any amount',exchanges:{},note:'Choose a plain GF mix without sauce; corn and peas count as starch.'},
+    {name:'Fresh Spinach',category:'free',serving:'Any amount',exchanges:{},note:'Naturally GF.'},
+    {name:'Mushrooms',category:'free',serving:'Any amount',exchanges:{},note:'Plain mushrooms, naturally GF.'},
+    {name:'Tomatoes',category:'free',serving:'Any amount',exchanges:{},note:'Naturally GF.'},
+    {name:'Cucumber',category:'free',serving:'Any amount',exchanges:{},note:'Naturally GF.'},
+    {name:'Capsicum',category:'free',serving:'Any amount',exchanges:{},note:'Naturally GF.'},
+    {name:'Celery',category:'free',serving:'Any amount',exchanges:{},note:'Naturally GF.'},
+    {name:'Broccoli',category:'free',serving:'Any amount',exchanges:{},note:'Non-starchy vegetable. Naturally GF.'},
+    {name:'Cabbage',category:'free',serving:'Any amount',exchanges:{},note:'Non-starchy vegetable. Naturally GF.'},
+    {name:'Green Beans',category:'free',serving:'Any amount',exchanges:{},note:'Non-starchy vegetable in the supplied exchange protocol.'},
+    {name:'GF Vegemite',category:'free',serving:'Small flavouring serve',exchanges:{},note:'Use the product specifically labelled gluten-free.'},
+    {name:'Mustard, verified GF',category:'free',serving:'Small flavouring serve',exchanges:{},note:'Check label for gluten-free status and cross-contact.'},
+    {name:'Apple Cider Vinegar',category:'free',serving:'1 tbsp',exchanges:{},note:'Plain apple cider vinegar.'},
+    {name:'Hot Sauce, verified GF',category:'free',serving:'Small flavouring serve',exchanges:{},note:'Check label; formulations vary.'},
+    {name:'Tamari Sauce, verified GF',category:'free',serving:'Small flavouring serve',exchanges:{},note:'Use gluten-free tamari, not standard soy sauce.'},
+    {name:'Fresh Herbs & Spices',category:'free',serving:'As needed',exchanges:{},note:'Plain herbs/spices. Check blends for gluten-containing additives.'},
+    {name:'Black Coffee',category:'free',serving:'1 cup',exchanges:{},note:'Plain, no milk or sugar.'},
+    {name:'Plain Herbal Tea',category:'free',serving:'1 cup',exchanges:{},note:'Plain tea; verify flavoured blends if ingredients are added.'},
+    {name:'Diet / Zero-Sugar Beverage, verified GF',category:'free',serving:'1 glass/can',exchanges:{},note:'Check label where ingredients or flavourings vary.'},
 
-            // PROTEINS
-            { name: "Whole Egg", portion: "1 egg", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Egg Whites", portion: "2 whites", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Chicken Breast", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Lean Beef / Kangaroo", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Lamb Chop (lean)", portion: "1 small chop (30g meat)", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Pork Fillet", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Barramundi / Salmon / White Fish", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Tuna / Salmon in Springwater", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Cottage Cheese", portion: "1/4 cup", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Firm Tofu", portion: "50g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "Ham (sliced)", portion: "30g", category: "Proteins", cost: "1 Protein Box" },
-            { name: "GF Thin Sausages", portion: "1 sausage", category: "Proteins & Fats", cost: "1 Protein Box + 1 Fat Box" },
-            { name: "Hard Cheese (Tasty/Cheddar)", portion: "30g", category: "Proteins & Fats", cost: "1 Protein Box + 1 Fat Box" },
+    {name:'Lean Beef',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain lean beef, cooked without gluten-containing sauces.'},
+    {name:'Kangaroo',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain lean kangaroo.'},
+    {name:'Chicken Breast',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain chicken breast.'},
+    {name:'Barramundi',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain cooked fish.'},
+    {name:'Salmon',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain cooked fish.'},
+    {name:'White Fish',category:'protein',serving:'30 g cooked',exchanges:{protein:1},note:'Plain cooked fish.'},
+    {name:'Tuna in Springwater',category:'protein',serving:'30 g drained',exchanges:{protein:1},note:'Choose a product labelled GF where flavourings are present.'},
+    {name:'Egg',category:'protein',serving:'1 whole egg',exchanges:{protein:1},note:'1 whole egg = 1 Protein exchange.'},
+    {name:'Egg Whites',category:'protein',serving:'2 whites',exchanges:{protein:1},note:'2 egg whites = 1 Protein exchange.'},
+    {name:'Low-Fat Cottage Cheese',category:'protein',serving:'1/4 cup',exchanges:{protein:1},note:'Use plain GF product.'},
+    {name:'Firm Tofu',category:'protein',serving:'50 g',exchanges:{protein:1},note:'Plain firm tofu; verify marinades/sauces separately.'},
+    {name:'Prawns',category:'protein',serving:'45 g cooked',exchanges:{protein:1},note:'Plain cooked prawns.'},
 
-            // FRUITS
-            { name: "Apple / Orange / Peach / Pear", portion: "1 medium", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Banana", portion: "1/2 medium", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Mango", portion: "1/2 small", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Berries", portion: "1 cup", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Kiwi", portion: "1 large", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Grapes", portion: "15 small", category: "Fruits", cost: "1 Fruit Box" },
-            { name: "Watermelon", portion: "1 cup diced", category: "Fruits", cost: "1 Fruit Box" },
+    {name:'GF Bread',category:'starch',serving:'1 slice',exchanges:{starch:1},note:'Must be labelled gluten-free.'},
+    {name:'GF Weet-Bix',category:'starch',serving:'2 biscuits',exchanges:{starch:1},note:'Use the gluten-free product only, not standard wheat Weet-Bix.'},
+    {name:'White Basmati Rice',category:'starch',serving:'1/2 cup cooked',exchanges:{starch:1},note:'Plain cooked rice.'},
+    {name:'Brown Basmati Rice',category:'starch',serving:'1/2 cup cooked',exchanges:{starch:1},note:'Plain cooked rice.'},
+    {name:'GF Pasta',category:'starch',serving:'1/2 cup cooked',exchanges:{starch:1},note:'Use pasta specifically labelled gluten-free.'},
+    {name:'Rice Noodles',category:'starch',serving:'1/2 cup cooked',exchanges:{starch:1},note:'Use plain rice noodles and verify label.'},
+    {name:'Potato',category:'starch',serving:'1 small, about 80 g',exchanges:{starch:1},note:'Counts as starch, not a free vegetable.'},
+    {name:'Sweet Potato',category:'starch',serving:'1 small, about 80 g',exchanges:{starch:1},note:'Counts as starch, not a free vegetable.'},
+    {name:'Sweet Corn Kernels',category:'starch',serving:'1/2 cup',exchanges:{starch:1},note:'Counts as starch, not a free vegetable.'},
+    {name:'Green Peas',category:'starch',serving:'1/2 cup',exchanges:{starch:1},note:'Counts as starch, not a free vegetable.'},
+    {name:'Rice Crackers, verified GF',category:'starch',serving:'10 small crackers',exchanges:{starch:1},note:'Use crackers labelled gluten-free.'},
+    {name:'Quinoa',category:'starch',serving:'1/2 cup cooked',exchanges:{starch:1},note:'Plain quinoa. Use uncontaminated product appropriate for a GF diet.'},
 
-            // DAIRY
-            { name: "Skim Milk", portion: "250ml", category: "Dairy", cost: "1 Dairy Box" },
-            { name: "GF Unsweetened Almond Milk", portion: "250ml", category: "Dairy", cost: "1 Dairy Box" },
-            { name: "Low-fat Plain Yoghurt", portion: "1 cup", category: "Dairy", cost: "1 Dairy Box" },
+    {name:'Apple',category:'fruit',serving:'1 medium',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Pear',category:'fruit',serving:'1 medium',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Orange',category:'fruit',serving:'1 medium',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Banana',category:'fruit',serving:'1/2 medium',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Strawberries',category:'fruit',serving:'1 cup',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Blueberries',category:'fruit',serving:'1 cup',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Kiwi Fruit',category:'fruit',serving:'1 large',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Mango',category:'fruit',serving:'1/2 small',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Fresh Pineapple',category:'fruit',serving:'1/2 cup diced',exchanges:{fruit:1},note:'Fresh fruit.'},
+    {name:'Passionfruit',category:'fruit',serving:'2 whole',exchanges:{fruit:1},note:'Fresh fruit.'},
 
-            // FATS
-            { name: "Olive Oil / Macadamia Oil", portion: "1 tsp", category: "Fats", cost: "1 Fat Box" },
-            { name: "Butter", portion: "1 tsp", category: "Fats", cost: "1 Fat Box" },
-            { name: "Avocado", portion: "1/8th of avocado", category: "Fats", cost: "1 Fat Box" },
-            { name: "Macadamias / Almonds", portion: "6 nuts", category: "Fats", cost: "1 Fat Box" },
-            { name: "Mayonnaise", portion: "1 tsp", category: "Fats", cost: "1 Fat Box" },
-            { name: "Peanut Butter", portion: "1 tsp", category: "Fats", cost: "1 Fat Box" }
-        ];
+    {name:'Skim Milk',category:'dairy',serving:'250 ml',exchanges:{dairy:1},note:'Plain skim milk.'},
+    {name:'Unsweetened GF Almond Milk',category:'dairy',serving:'250 ml',exchanges:{dairy:1},note:'Use a product clearly labelled gluten-free.'},
+    {name:'Unsweetened GF Soy Milk',category:'dairy',serving:'250 ml',exchanges:{dairy:1},note:'Use a product clearly labelled gluten-free.'},
+    {name:'Low-Fat Plain GF Yoghurt',category:'dairy',serving:'200 g / 1 cup',exchanges:{dairy:1},note:'Plain yoghurt labelled gluten-free where required.'},
+    {name:'Cheddar Cheese',category:'dairy',serving:'30 g',exchanges:{protein:1,fat:1},note:'Counts as 1 Protein + 1 Fat, not a Dairy exchange.'},
 
-        // RECIPES DATABASE
-        const recipesDB = [
-            { title: "🍳 Dalila's Giant GF Omelette", ingredients: "1 Whole Egg, 2 Egg Whites, Spinach, Mushrooms, Zucchini.", cost: "2 Proteins, 0 Free" },
-            { title: "🍲 Aussie Chicken & Pumpkin Soup", ingredients: "GF Chicken broth, roasted pumpkin, zucchini, 60g shredded chicken breast.", cost: "2 Proteins, 0 Free" },
-            { title: "🥩 Steak & Mash Dinner", ingredients: "90g lean steak, 1 small potato mashed with 1 tsp butter, green beans.", cost: "3 Proteins, 1 Bread, 1 Fat" },
-            { title: "🍝 GF Spaghetti Bolognese", ingredients: "1 cup cooked GF pasta, 90g lean beef mince, crushed tomatoes, garlic, herbs.", cost: "3 Proteins, 2 Breads, 0 Free" },
-            { title: "🥪 Corn Thin Tuna Melt", ingredients: "2 Corn Thins, 30g tuna, 30g Tasty cheese (melted on top).", cost: "2 Proteins, 1 Bread, 1 Fat" },
-            { title: "🍓 Quick Afternoon Tea", ingredients: "1 cup low-fat plain yoghurt, 1 cup berries.", cost: "1 Dairy, 1 Fruit" },
-            { title: "🥣 GF Weet-Bix Start", ingredients: "2 GF Weet-Bix biscuits, 250ml skim milk or GF unsweetened almond milk.", cost: "1 Bread, 1 Dairy" },
-            { title: "🍎 Apple & Peanut Butter", ingredients: "1 medium apple, 1 tsp peanut butter.", cost: "1 Fruit, 1 Fat" }
-        ];
+    {name:'Extra Virgin Olive Oil',category:'fat',serving:'1 tsp',exchanges:{fat:1},note:'1 tsp = 1 Fat exchange.'},
+    {name:'Butter',category:'fat',serving:'1 tsp',exchanges:{fat:1},note:'1 tsp = 1 Fat exchange.'},
+    {name:'Avocado',category:'fat',serving:'1/8 medium or about 20 g',exchanges:{fat:1},note:'1 serve = 1 Fat exchange.'},
+    {name:'Macadamia Nuts',category:'fat',serving:'6 whole',exchanges:{fat:1},note:'Plain nuts.'},
+    {name:'Almonds',category:'fat',serving:'6 whole',exchanges:{fat:1},note:'Plain nuts.'},
+    {name:'GF Mayonnaise',category:'fat',serving:'1 tsp',exchanges:{fat:1},note:'Use mayonnaise labelled gluten-free.'},
+    {name:'GF Salad Dressing',category:'fat',serving:'1 tbsp',exchanges:{fat:1},note:'Use dressing labelled gluten-free.'}
+  ];
 
-        // Initialize App
-        function initApp() {
-            populateWeekSelector();
-            loadProgress(); // Loads week and boxes
-            renderTracker();
-            renderRecipes();
-            renderLibrary();
-            setupSearch();
-        }
+  const meals = [
+    {
+      category:'Breakfast',name:'Classic GF Veggie Omelette',
+      description:'A simple high-volume breakfast using free vegetables.',
+      ingredients:['1 whole egg','2 egg whites','Fresh spinach','Mushrooms','Zucchini'],
+      exchanges:{protein:2},note:'Cost: 2 Proteins. Free vegetables use 0 exchange boxes.'
+    },
+    {
+      category:'Lunch / Dinner',name:'Aussie GF Chicken & Pumpkin Soup',
+      description:'Clear GF chicken broth with free vegetables and shredded chicken.',
+      ingredients:['Clear certified GF chicken broth','Roasted pumpkin','Zucchini','Green beans','60 g shredded chicken breast'],
+      exchanges:{protein:2},note:'Cost: 2 Proteins. Broth and listed vegetables use 0 exchange boxes.'
+    },
+    {
+      category:'Snack',name:'High-Volume Morning / Afternoon Tea',
+      description:'Plain yoghurt with fresh berries.',
+      ingredients:['1 cup low-fat plain GF yoghurt','1 cup fresh strawberries or blueberries'],
+      exchanges:{dairy:1,fruit:1},note:'Cost: 1 Dairy + 1 Fruit.'
+    },
+    {
+      category:'Breakfast',name:'Quick GF Toast & Eggs',
+      description:'GF toast with GF Vegemite and poached eggs.',
+      ingredients:['1 slice GF bread','GF Vegemite','2 poached eggs'],
+      exchanges:{protein:2,starch:1},note:'Cost: 2 Proteins + 1 Bread/Starch.'
+    },
+    {
+      category:'Lunch / Dinner',name:'Seafood & Rice Dinner',
+      description:'Grilled fish, rice and a large side of free vegetables with olive oil.',
+      ingredients:['90 g grilled barramundi','1/2 cup cooked basmati rice','Zucchini','Broccoli','Pumpkin','2 tsp extra virgin olive oil'],
+      exchanges:{protein:3,starch:1,fat:2},note:'Cost: 3 Proteins + 1 Bread/Starch + 2 Fats.'
+    },
+    {
+      category:'Lunch / Dinner',name:'Tuna & Salad Crunch',
+      description:'Tuna salad with rice crackers and GF dressing.',
+      ingredients:['60 g tuna in springwater','Mixed leaves','Cucumber','Tomato','Capsicum','10 verified GF rice crackers','1 tbsp GF salad dressing'],
+      exchanges:{protein:2,starch:1,fat:1},note:'Cost: 2 Proteins + 1 Bread/Starch + 1 Fat.'
+    },
+    {
+      category:'Lunch / Dinner',name:'Steak & Potato Plate',
+      description:'Lean beef with baked potato and free vegetables.',
+      ingredients:['90 g lean beef sirloin','1 small baked potato, about 80 g','Roasted pumpkin','Green beans','1 tsp butter'],
+      exchanges:{protein:3,starch:1,fat:1},note:'Cost: 3 Proteins + 1 Bread/Starch + 1 Fat.'
+    },
+    {
+      category:'Snack',name:'Evening Yoghurt & Fruit Bowl',
+      description:'A milk smoothie with banana and berries.',
+      ingredients:['250 ml skim milk','1/2 banana','1 cup berries'],
+      exchanges:{dairy:1,fruit:1.5},note:'Cost: 1 Dairy + 1.5 Fruit.'
+    }
+  ];
 
-        function populateWeekSelector() {
-            const selector = document.getElementById('week-selector');
-            for (let i = 1; i <= 12; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.text = `Week ${i}`;
-                selector.appendChild(opt);
-            }
-        }
+  const bannedSearch = [
+    {term:'wheat bread',message:'Standard wheat bread is not permitted. Use bread clearly labelled gluten-free.'},
+    {term:'standard bread',message:'Use bread clearly labelled gluten-free.'},
+    {term:'regular bread',message:'Use bread clearly labelled gluten-free.'},
+    {term:'standard pasta',message:'Standard wheat pasta is not permitted. Use GF pasta or verified rice noodles.'},
+    {term:'regular pasta',message:'Standard wheat pasta is not permitted. Use GF pasta or verified rice noodles.'},
+    {term:'barley',message:'Barley is not gluten-free and is not included in this tracker.'},
+    {term:'rye',message:'Rye is not gluten-free and is not included in this tracker.'},
+    {term:'soy sauce',message:'Standard soy sauce may contain wheat. Use verified gluten-free tamari instead.'},
+    {term:'regular oats',message:'Regular oats are not included. Follow your clinician’s coeliac guidance for oats and use only appropriately certified products if permitted.'}
+  ];
 
-        function changeWeek() {
-            const newWeek = parseInt(document.getElementById('week-selector').value);
-            if (newWeek !== currentWeek) {
-                if (confirm("Changing your week will reset all checked boxes for today. Do you want to continue?")) {
-                    currentWeek = newWeek;
-                    localStorage.setItem('dalilaWeek', currentWeek);
-                    
-                    // Clear boxes
-                    localStorage.removeItem('dalilaFoodTracker');
-                    
-                    renderTracker();
-                } else {
-                    // Revert dropdown
-                    document.getElementById('week-selector').value = currentWeek;
-                }
-            }
-        }
+  let state = loadState();
+  let activeFoodFilter = 'all';
+  let feedbackTimer = null;
 
-        // Render Checkboxes
-        function renderTracker() {
-            const container = document.getElementById('tracker-container');
-            container.innerHTML = '';
-            
-            const budget = weeklyBudgets[currentWeek];
+  const exchangeGrid = document.getElementById('exchangeGrid');
+  const foodList = document.getElementById('foodList');
+  const foodSearch = document.getElementById('foodSearch');
+  const filterRow = document.getElementById('filterRow');
+  const resultSummary = document.getElementById('resultSummary');
+  const mealList = document.getElementById('mealList');
+  const feedback = document.getElementById('feedback');
+  const resetModal = document.getElementById('resetModal');
 
-            categoryMeta.forEach(cat => {
-                const count = budget[cat.id];
-                let html = `
-                <div class="category-card ${cat.cssClass}">
-                    <div class="category-header">
-                        <div class="category-title">${cat.name} (${count})</div>
-                    </div>
-                    <div class="boxes-container">
-                `;
+  function defaultState(){
+    return {used:{protein:0,starch:0,fruit:0,fat:0,dairy:0},dayStamp:todayStamp()};
+  }
 
-                for (let i = 1; i <= count; i++) {
-                    const boxId = `${cat.id}-${i}`;
-                    html += `
-                    <div class="box-wrapper">
-                        <input type="checkbox" id="${boxId}" onchange="saveProgress()">
-                        <label for="${boxId}" class="box-label" id="label-${boxId}"></label>
-                    </div>
-                    `;
-                }
+  function todayStamp(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
 
-                html += `</div></div>`;
-                container.innerHTML += html;
-            });
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      const safe = defaultState();
+      if(parsed && parsed.used){
+        Object.keys(safe.used).forEach(k => {
+          const v = Number(parsed.used[k]);
+          safe.used[k] = Number.isFinite(v) ? Math.max(0,Math.round(v*2)/2) : 0;
+        });
+      }
+      safe.dayStamp = typeof parsed.dayStamp === 'string' ? parsed.dayStamp : todayStamp();
+      return safe;
+    }catch(_){ return defaultState(); }
+  }
 
-            // Re-apply saved checks if any exist (e.g. on load)
-            applySavedBoxes();
-        }
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }catch(_){ /* storage can be unavailable */ }
+  }
 
-        // Render Recipes
-        function renderRecipes() {
-            const container = document.getElementById('recipes-container');
-            let html = '';
-            recipesDB.forEach(rec => {
-                html += `
-                <div class="recipe-card">
-                    <div class="recipe-title">${rec.title}</div>
-                    <div class="recipe-ingredients">${rec.ingredients}</div>
-                    <div class="recipe-cost">Cost: ${rec.cost}</div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
+  function formatDate(){
+    return new Intl.DateTimeFormat('en-AU',{weekday:'long',day:'numeric',month:'short',year:'numeric'}).format(new Date());
+  }
 
-        // Render Full Library
-        function renderLibrary() {
-            const container = document.getElementById('library-container');
-            const categories = ["Free", "Breads/Starches", "Proteins", "Proteins & Fats", "Fruits", "Dairy", "Fats"];
-            
-            let html = '';
-            categories.forEach(cat => {
-                html += `<div class="library-category">${cat} Foods</div>`;
-                foodDB.filter(f => f.category === cat).forEach(food => {
-                    html += `
-                    <div class="library-item">
-                        <span>${food.name} (${food.portion})</span>
-                        <span>${food.cost.replace(' Box','').replace(' Boxes','')}</span>
-                    </div>`;
-                });
-            });
-            container.innerHTML = html;
-        }
+  function showFeedback(message){
+    feedback.textContent = message;
+    feedback.classList.add('show');
+    clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => feedback.classList.remove('show'),1800);
+  }
 
-        // Save progress to LocalStorage
-        function saveProgress() {
-            const data = {};
-            const budget = weeklyBudgets[currentWeek];
-            
-            categoryMeta.forEach(cat => {
-                const count = budget[cat.id];
-                for (let i = 1; i <= count; i++) {
-                    const boxId = `${cat.id}-${i}`;
-                    const isChecked = document.getElementById(boxId).checked;
-                    data[boxId] = isChecked;
-                    
-                    const label = document.getElementById(`label-${boxId}`);
-                    if (isChecked) {
-                        label.classList.add('checked');
-                    } else {
-                        label.classList.remove('checked');
-                    }
-                }
-            });
-            localStorage.setItem('dalilaFoodTracker', JSON.stringify(data));
-        }
+  function formatNumber(n){ return Number.isInteger(n) ? String(n) : n.toFixed(1); }
 
-        function applySavedBoxes() {
-            const savedData = localStorage.getItem('dalilaFoodTracker');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                for (const [boxId, isChecked] of Object.entries(data)) {
-                    const el = document.getElementById(boxId);
-                    if (el) {
-                        el.checked = isChecked;
-                        if (isChecked) {
-                            document.getElementById(`label-${boxId}`).classList.add('checked');
-                        }
-                    }
-                }
-            }
-        }
+  function renderTracker(){
+    document.getElementById('dayMeta').textContent = formatDate();
+    exchangeGrid.replaceChildren();
+    Object.entries(allowance).forEach(([key,max]) => {
+      const used = state.used[key] || 0;
+      const card = document.createElement('section');
+      card.className = 'exchange-card' + (used > max ? ' over' : '');
 
-        // Load progress on startup
-        function loadProgress() {
-            const savedWeek = localStorage.getItem('dalilaWeek');
-            if (savedWeek && weeklyBudgets[savedWeek]) {
-                currentWeek = parseInt(savedWeek);
-            }
-            document.getElementById('week-selector').value = currentWeek;
-            // The boxes themselves are applied via renderTracker -> applySavedBoxes
-        }
+      const top = document.createElement('div'); top.className='exchange-top';
+      const title = document.createElement('div'); title.className='exchange-title';
+      const h2 = document.createElement('h2'); h2.textContent = categoryLabels[key];
+      const calibration = document.createElement('span'); calibration.textContent = categoryCalibration[key];
+      title.append(h2,calibration);
+      const count = document.createElement('div'); count.className='count' + (used > max ? ' over' : '');
+      count.textContent = `${formatNumber(used)} / ${max}`;
+      top.append(title,count);
+      card.appendChild(top);
 
-        // Start New Day (Reset)
-        function startNewDay() {
-            if (confirm("Are you sure you want to start a new day? This clears all your boxes.")) {
-                const budget = weeklyBudgets[currentWeek];
-                categoryMeta.forEach(cat => {
-                    const count = budget[cat.id];
-                    for (let i = 1; i <= count; i++) {
-                        const boxId = `${cat.id}-${i}`;
-                        const el = document.getElementById(boxId);
-                        if(el) el.checked = false;
-                        const label = document.getElementById(`label-${boxId}`);
-                        if(label) label.classList.remove('checked');
-                    }
-                });
-                saveProgress();
-                window.scrollTo(0, 0);
-            }
-        }
+      const boxes = document.createElement('div'); boxes.className='boxes';
+      for(let i=0;i<max;i++){
+        const wrap = document.createElement('div'); wrap.className='box-wrap';
+        const input = document.createElement('input'); input.type='checkbox'; input.id=`${key}-box-${i}`;
+        input.checked = used >= i+1;
+        const isHalf = !input.checked && used >= i+0.5;
+        input.indeterminate = isHalf;
+        if(isHalf) wrap.classList.add('half');
+        input.setAttribute('aria-label',`${categoryLabels[key]} exchange box ${i+1} of ${max}`);
+        input.addEventListener('change',() => {
+          state.used[key] = input.checked ? i+1 : i;
+          saveState(); renderTracker();
+        });
+        const label = document.createElement('label'); label.className='box'; label.htmlFor=input.id; label.textContent=String(i+1);
+        wrap.append(input,label); boxes.appendChild(wrap);
+      }
+      card.appendChild(boxes);
 
-        // Tab Switching
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+      const adjustRow = document.createElement('div'); adjustRow.className='adjust-row';
+      const minus = document.createElement('button'); minus.type='button'; minus.className='adjust'; minus.textContent='− ½ exchange';
+      minus.addEventListener('click',() => adjustExchange(key,-0.5));
+      const plus = document.createElement('button'); plus.type='button'; plus.className='adjust'; plus.textContent='+ ½ exchange';
+      plus.addEventListener('click',() => adjustExchange(key,0.5));
+      adjustRow.append(minus,plus); card.appendChild(adjustRow);
 
-            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            
-            const resetBtn = document.getElementById('reset-btn');
-            if(tabId === 'tracker') {
-                resetBtn.style.display = 'block';
-            } else {
-                resetBtn.style.display = 'none';
-            }
-        }
+      if(used > max){
+        const note = document.createElement('div'); note.className='food-note';
+        note.textContent = `${formatNumber(used-max)} exchange${used-max===1?'':'s'} above the default daily allowance.`;
+        card.appendChild(note);
+      }
+      exchangeGrid.appendChild(card);
+    });
+  }
 
-        // Search Functionality
-        function setupSearch() {
-            const searchInput = document.getElementById('search-input');
-            const searchResults = document.getElementById('search-results');
+  function adjustExchange(key,delta){
+    state.used[key] = Math.max(0,Math.round(((state.used[key]||0)+delta)*2)/2);
+    saveState(); renderTracker();
+  }
 
-            searchInput.addEventListener('input', function(e) {
-                const query = e.target.value.toLowerCase().trim();
-                
-                if (query.length < 2) {
-                    searchResults.style.display = 'none';
-                    return;
-                }
+  function addExchanges(exchanges,label){
+    Object.entries(exchanges).forEach(([key,value]) => {
+      if(Object.prototype.hasOwnProperty.call(state.used,key)){
+        state.used[key] = Math.max(0,Math.round(((state.used[key]||0)+Number(value))*2)/2);
+      }
+    });
+    saveState(); renderTracker();
+    showFeedback(`${label} added to today’s tracker.`);
+  }
 
-                const matches = foodDB.filter(food => 
-                    food.name.toLowerCase().includes(query) || 
-                    food.category.toLowerCase().includes(query)
-                );
+  function exchangeTags(exchanges){
+    const frag = document.createDocumentFragment();
+    const entries = Object.entries(exchanges);
+    if(!entries.length){
+      const tag = document.createElement('span'); tag.className='exchange-tag'; tag.textContent='0 exchanges'; frag.appendChild(tag); return frag;
+    }
+    entries.forEach(([key,value]) => {
+      const tag = document.createElement('span'); tag.className='exchange-tag';
+      tag.textContent = `${formatNumber(value)} ${categoryLabels[key]}`;
+      frag.appendChild(tag);
+    });
+    return frag;
+  }
 
-                if (matches.length > 0) {
-                    let html = '';
-                    matches.forEach(food => {
-                        html += `
-                        <div class="search-item">
-                            <div class="food-name">${food.name} (${food.portion})</div>
-                            <div class="food-cost">Costs: ${food.cost}</div>
-                        </div>
-                        `;
-                    });
-                    searchResults.innerHTML = html;
-                    searchResults.style.display = 'block';
-                } else {
-                    searchResults.innerHTML = '<div class="search-item">No matches found. Try a different word.</div>';
-                    searchResults.style.display = 'block';
-                }
-            });
+  function createFoodCard(food){
+    const card = document.createElement('article'); card.className='food-card';
+    const head = document.createElement('div'); head.className='food-head';
+    const name = document.createElement('div'); name.className='food-name'; name.textContent=food.name;
+    const pill = document.createElement('span'); pill.className='pill'+(food.category==='free'?' free':''); pill.textContent=categoryLabels[food.category];
+    head.append(name,pill); card.appendChild(head);
+    const serving = document.createElement('div'); serving.className='serving'; serving.textContent=`Serving: ${food.serving}`; card.appendChild(serving);
+    const exchanges = document.createElement('div'); exchanges.className='exchanges'; exchanges.appendChild(exchangeTags(food.exchanges)); card.appendChild(exchanges);
+    const note = document.createElement('p'); note.className='food-note'; note.textContent=food.note; card.appendChild(note);
+    if(Object.keys(food.exchanges).length){
+      const add = document.createElement('button'); add.type='button'; add.className='food-add'; add.textContent='Add to today’s tracker';
+      add.addEventListener('click',() => addExchanges(food.exchanges,food.name)); card.appendChild(add);
+    }
+    return card;
+  }
 
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    searchResults.style.display = 'none';
-                }
-            });
-        }
+  function normalized(text){
+    return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  }
 
-        window.onload = initApp;
+  function renderFoodFilters(){
+    const filters = ['all','free','protein','starch','fruit','fat','dairy'];
+    filterRow.replaceChildren();
+    filters.forEach(key => {
+      const btn = document.createElement('button'); btn.type='button'; btn.className='filter-chip'+(activeFoodFilter===key?' active':'');
+      btn.textContent = key==='all' ? 'All' : categoryLabels[key];
+      btn.addEventListener('click',() => {activeFoodFilter=key;renderFoodFilters();renderFoods();});
+      filterRow.appendChild(btn);
+    });
+  }
 
-    </script>
+  function renderFoods(){
+    const q = normalized(foodSearch.value);
+    foodList.replaceChildren();
+
+    const banned = q ? bannedSearch.find(b => q.includes(b.term) || normalized(b.term).includes(q)) : null;
+    if(banned){
+      const warning = document.createElement('div'); warning.className='card'; warning.style.borderColor='var(--danger)';
+      const strong = document.createElement('strong'); strong.textContent='Not included: gluten-containing or non-approved item';
+      const p = document.createElement('p'); p.className='food-note'; p.textContent=banned.message;
+      warning.append(strong,p); foodList.appendChild(warning);
+    }
+
+    const matches = foods.filter(food => {
+      const inCategory = activeFoodFilter==='all' || food.category===activeFoodFilter;
+      if(!inCategory) return false;
+      if(!q) return true;
+      const haystack = normalized([food.name,food.serving,food.note,categoryLabels[food.category]].join(' '));
+      return haystack.includes(q);
+    });
+
+    resultSummary.textContent = `${matches.length} gluten-free ${matches.length===1?'item':'items'} shown`;
+    if(!matches.length){
+      const empty = document.createElement('div'); empty.className='empty'; empty.textContent='No matching GF food in the embedded exchange list.'; foodList.appendChild(empty); return;
+    }
+    matches.forEach(food => foodList.appendChild(createFoodCard(food)));
+  }
+
+  function renderMeals(){
+    mealList.replaceChildren();
+    meals.forEach(meal => {
+      const card = document.createElement('article'); card.className='meal-card';
+      const head = document.createElement('div'); head.className='meal-head';
+      const titleWrap = document.createElement('div');
+      const name = document.createElement('div'); name.className='meal-name'; name.textContent=meal.name;
+      const meta = document.createElement('div'); meta.className='meal-meta'; meta.textContent=meal.category;
+      titleWrap.append(name,meta);
+      const pill = document.createElement('span'); pill.className='pill'; pill.textContent='100% GF template';
+      head.append(titleWrap,pill); card.appendChild(head);
+      const desc = document.createElement('p'); desc.className='meal-desc'; desc.textContent=meal.description; card.appendChild(desc);
+      const ul = document.createElement('ul'); ul.className='ingredients';
+      meal.ingredients.forEach(item => {const li=document.createElement('li');li.textContent=item;ul.appendChild(li);}); card.appendChild(ul);
+      const exchanges = document.createElement('div'); exchanges.className='exchanges'; exchanges.appendChild(exchangeTags(meal.exchanges)); card.appendChild(exchanges);
+      const note = document.createElement('p'); note.className='food-note'; note.textContent=meal.note; card.appendChild(note);
+      const add = document.createElement('button'); add.type='button'; add.className='meal-add'; add.textContent='Add meal exchanges to tracker';
+      add.addEventListener('click',() => addExchanges(meal.exchanges,meal.name)); card.appendChild(add);
+      mealList.appendChild(card);
+    });
+  }
+
+  function activateView(viewId,button){
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active',v.id===viewId));
+    document.querySelectorAll('.nav-btn').forEach(b => {const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));});
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(viewId==='lookupView') setTimeout(() => foodSearch.focus({preventScroll:true}),120);
+  }
+
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click',() => activateView(btn.dataset.view,btn)));
+  foodSearch.addEventListener('input',renderFoods);
+
+  document.getElementById('newDayBtn').addEventListener('click',() => {resetModal.classList.add('open');document.getElementById('cancelReset').focus();});
+  document.getElementById('cancelReset').addEventListener('click',() => {resetModal.classList.remove('open');document.getElementById('newDayBtn').focus();});
+  document.getElementById('confirmReset').addEventListener('click',() => {
+    state=defaultState();saveState();renderTracker();resetModal.classList.remove('open');showFeedback('New day started. Exchange boxes cleared.');
+  });
+  resetModal.addEventListener('click',e => {if(e.target===resetModal){resetModal.classList.remove('open');document.getElementById('newDayBtn').focus();}});
+  document.addEventListener('keydown',e => {if(e.key==='Escape' && resetModal.classList.contains('open')){resetModal.classList.remove('open');document.getElementById('newDayBtn').focus();}});
+
+  renderTracker();
+  renderFoodFilters();
+  renderFoods();
+  renderMeals();
+})();
+</script>
 </body>
 </html>
