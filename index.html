@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>GF Exchange Tracker v1.7</title>
+<title>GF Exchange Tracker v1.8.1</title>
+<meta name="theme-color" content="#0b6b57">
+<meta name="application-name" content="GF Exchange Tracker">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <style>
 :root{
   --bg:#f4f6f7;--surface:#fff;--surface-2:#edf2f3;--text:#142127;--muted:#5d6a70;
@@ -39,6 +47,39 @@ main{padding:12px 12px 24px}.view{display:none}.view.active{display:block}.card,
 .idea-tools{position:sticky;top:69px;z-index:15;background:var(--bg);padding:0 0 9px}.recipe-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.method-pill{display:inline-flex;align-items:center;min-height:26px;border:1px solid var(--border);border-radius:999px;background:var(--surface-2);padding:3px 7px;font-size:.68rem;font-weight:820}.recipe-time{font-size:.74rem;color:var(--muted);margin-top:6px}.recipe-details{margin-top:9px;border-top:1px solid var(--border);padding-top:8px}.recipe-details summary{cursor:pointer;font-size:.8rem;font-weight:820;min-height:38px;display:flex;align-items:center;color:var(--accent-2)}.method-steps{margin:7px 0 0;padding-left:18px;font-size:.8rem;color:var(--muted)}.method-steps li{margin:4px 0}.recipe-fit{font-size:.72rem;font-weight:820;margin-top:7px}.recipe-fit.fit{color:var(--ok)}.recipe-fit.over{color:var(--danger)}
 
 .search-action-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.search-action-row .search{min-width:0}.convert-btn{min-height:50px;border-radius:14px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent-2);font-weight:850;padding:8px 12px;white-space:nowrap;cursor:pointer}.search-section-title{font-size:.78rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 2px 7px}.result-kind{display:inline-flex;align-items:center;min-height:24px;border-radius:999px;padding:3px 7px;font-size:.66rem;font-weight:900;background:var(--accent-soft);color:var(--accent-2);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border));margin-bottom:6px}.convert-cta{background:var(--surface);border:1px dashed var(--accent);border-radius:14px;padding:13px;margin-top:9px}.convert-cta strong{display:block}.convert-cta p{font-size:.8rem;color:var(--muted);margin:4px 0 10px}.convert-cta button{width:100%;min-height:44px;border:0;border-radius:11px;background:var(--accent);color:#fff;font-weight:850}.custom-badge{display:inline-flex;align-items:center;min-height:25px;border-radius:999px;border:1px solid var(--accent);padding:3px 7px;font-size:.68rem;font-weight:850;color:var(--accent-2);background:var(--accent-soft)}.custom-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}.custom-actions .food-add{margin:0}.custom-delete{min-height:44px;border-radius:11px;border:1px solid var(--danger);background:var(--danger-bg);color:var(--danger);font-weight:800;padding:8px 11px}.converter-form{display:grid;gap:11px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label,.field-full label{display:block;font-size:.74rem;font-weight:850;color:var(--muted);margin:0 0 4px 2px}.field input,.field select,.field-full input,.field-full select{width:100%;min-height:48px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);padding:8px 10px}.converter-help{font-size:.76rem;color:var(--muted);margin:0}.converter-result{border:1px solid var(--accent);background:var(--accent-soft);border-radius:13px;padding:12px;margin-top:10px}.converter-result[hidden]{display:none}.converter-cost{font-size:1.08rem;font-weight:950;margin-top:4px}.converter-fit{font-size:.78rem;color:var(--muted);margin-top:5px}.converter-warning{font-size:.76rem;color:var(--warn);margin-top:7px}.converter-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.converter-actions button{min-height:46px;border-radius:11px;font-weight:850}.gf-check{display:flex;gap:9px;align-items:flex-start;font-size:.8rem;color:var(--muted);padding:8px 0}.gf-check input{width:22px;height:22px;flex:0 0 auto}.basis-extra[hidden]{display:none}.picker-kind{font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;color:var(--accent-2);margin-bottom:2px}.picker-convert{width:100%;min-height:44px;margin:8px 0 2px;border:1px dashed var(--accent);border-radius:11px;background:var(--accent-soft);color:var(--accent-2);font-weight:850}
+
+/* v1.8.1 mobile overflow hardening: keep Foods/universal-search results inside the viewport. */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.app,main,.view,.search-wrap,.idea-tools,.food-list,.idea-list,.card,.meal-plan-card,.food-card,.idea-card,.cheat-card,.cheat-food-card,.swap-card{min-width:0;max-width:100%}
+.app{width:100%;overflow-x:clip}
+.food-card,.idea-card,.cheat-card,.cheat-food-card,.swap-card{overflow-wrap:anywhere}
+.food-head,.idea-head,.cheat-head,.cheat-food-top,.section-head,.meal-plan-head,.plan-item-main,.modal-head,.day-head,.header-row{min-width:0;max-width:100%}
+.food-head>div:first-child,.idea-head>div:first-child,.cheat-head>div:first-child,.cheat-food-top>div:first-child,.section-head>div:first-child,.meal-plan-head>div:first-child,.plan-item-main>div:first-child,.modal-head>div:first-child,.day-head>div:first-child,.header-row>div:first-child{min-width:0;flex:1 1 auto}
+.food-name,.idea-name,.cheat-title,.cheat-food-name,.plan-item-name,.serving,.food-note,.idea-desc,.recipe-time,.result-summary,.picker-row-name,.picker-row-meta,.converter-fit,.converter-warning,.method-steps li,.ingredients li{max-width:100%;overflow-wrap:anywhere;word-break:normal}
+.ingredients,.method-steps{min-width:0;max-width:100%;padding-inline-start:20px}
+.pill,.cost-pill,.confidence-badge,.method-pill,.exchange-tag,.custom-badge{max-width:100%}
+.filter-row,.target-actions{width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain}
+.filter-chip,.target-chip{flex:0 0 auto;max-width:calc(100vw - 40px)}
+.picker-row{min-width:0;max-width:100%;overflow:hidden}
+.picker-row>div{min-width:0;max-width:100%}
+.search-action-row,.custom-actions,.converter-actions,.field-row{min-width:0;max-width:100%}
+.search-action-row>* ,.custom-actions>* ,.converter-actions>* ,.field-row>*{min-width:0}
+@media(max-width:520px){
+  .food-head,.idea-head,.cheat-head,.cheat-food-top{gap:7px}
+  .pill,.cost-pill{flex:0 1 auto;white-space:normal;text-align:center;overflow-wrap:anywhere}
+  .target-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;overflow:visible;padding-top:9px}
+  .target-chip{width:100%;max-width:none;min-width:0;white-space:normal;padding:7px 6px}
+  .target-chip:nth-child(5):last-child{grid-column:1/-1}
+  .header-row{align-items:flex-start}
+  .status-dot{flex:0 0 auto;font-size:.7rem}
+}
+@media(max-width:360px){
+  header{padding-left:10px;padding-right:10px}
+  main{padding-left:9px;padding-right:9px}
+  .food-card,.idea-card,.cheat-card{padding:11px}
+  .status-dot{white-space:normal;text-align:right;line-height:1.15;max-width:78px}
+}
+
 @media(max-width:420px){.search-action-row{grid-template-columns:1fr}.convert-btn{width:100%}.field-row{grid-template-columns:1fr 1fr}.converter-actions{grid-template-columns:1fr}}
 </style>
 </head>
@@ -74,7 +115,7 @@ main{padding:12px 12px 24px}.view{display:none}.view.active{display:block}.card,
   <section class="cheat-section"><div class="section-head"><div><h2>Low-cost building blocks</h2><p>Useful single foods when one category still has room.</p></div></div><div id="cheatFoodList" class="cheat-food-grid"></div></section>
   <section class="cheat-section"><div class="section-head"><div><h2>Exchange-saving swaps</h2><p>These reduce exchange cost only. They are not nutritionally identical substitutions.</p></div></div><div id="cheatSwapList" class="swap-list"></div></section>
 </section>
-<div class="footer-note">GF Exchange Tracker v1.7 · 780 embedded foods · 247 main recipe ideas · anonymous local-only planning</div>
+<div class="footer-note">GF Exchange Tracker v1.8.1 · 780 embedded foods · 247 main recipe ideas · installable offline PWA · anonymous local-only planning</div>
 </main></div>
 <nav class="bottom-nav" aria-label="Primary navigation"><button id="planTab" class="nav-btn active" type="button" data-view="planView" aria-selected="true"><span class="nav-symbol">▦</span><span>Plan</span></button><button id="foodsTab" class="nav-btn" type="button" data-view="foodsView" aria-selected="false"><span class="nav-symbol">⌕</span><span>Foods</span></button><button id="ideasTab" class="nav-btn" type="button" data-view="ideasView" aria-selected="false"><span class="nav-symbol">≡</span><span>Ideas</span></button><button id="cheatTab" class="nav-btn" type="button" data-view="cheatView" aria-selected="false"><span class="nav-symbol">☆</span><span>Cheat Sheet</span></button></nav>
 <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
@@ -201,6 +242,18 @@ document.getElementById('datasetCount').textContent=`${foods.length} embedded fo
 // Top-level lookup filters.
 function drawTopFilters(){renderFoodFilters(els.filterRow,activeFoodFilter,k=>{activeFoodFilter=k;drawTopFilters();renderFoods()})}
 drawTopFilters();renderIdeaMethodFilters();renderPlan();renderFoods();renderIdeas();saveState();
+})();
+</script>
+
+<script>
+(function(){
+  if (!('serviceWorker' in navigator)) return;
+  if (!(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) return;
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./service-worker.js', {scope:'./'}).catch(function(err){
+      console.warn('Offline service worker registration failed:', err);
+    });
+  });
 })();
 </script>
 </body>
